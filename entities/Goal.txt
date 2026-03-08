@@ -1,0 +1,51 @@
+{
+  "name": "Goal",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Titolo dell'obiettivo"
+    },
+    "target_amount": {
+      "type": "number",
+      "description": "Importo obiettivo"
+    },
+    "current_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Importo attuale risparmiato"
+    },
+    "deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "Scadenza dell'obiettivo"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "in_corso",
+        "completato",
+        "in_pausa"
+      ],
+      "default": "in_corso",
+      "description": "Stato dell'obiettivo"
+    },
+    "color": {
+      "type": "string",
+      "default": "#10b981",
+      "description": "Colore per la visualizzazione"
+    },
+    "paid_months": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Mesi in cui la quota \u00e8 stata pagata (formato YYYY-MM)"
+    }
+  },
+  "required": [
+    "title",
+    "target_amount"
+  ]
+}
