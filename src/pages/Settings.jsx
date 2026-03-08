@@ -1,22 +1,21 @@
 import React, { useState } from "react";
+import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
-import { clearAllData } from "@/api/localData";
 import { Trash2, LogOut, User, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Settings() {
+  const { user, logout } = useAuth();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const handleLogout = () => {
-    base44.auth.logout();
+  const handleLogout = async () => {
+    await logout();
   };
 
   const handleDeleteAccount = async () => {
     setDeleting(true);
-    clearAllData();
-    localStorage.removeItem("appspese_session");
-    window.location.reload();
+    await base44.auth.deleteAccount();
   };
 
   return (
@@ -33,8 +32,8 @@ export default function Settings() {
             <User className="h-5 w-5 text-emerald-400" />
           </div>
           <div>
-            <p className="text-sm font-medium text-white">Account Locale</p>
-            <p className="text-xs text-slate-500">I dati sono salvati nel browser</p>
+            <p className="text-sm font-medium text-white">{user?.name || user?.email || "Utente"}</p>
+            <p className="text-xs text-slate-500">{user?.email || "Account Firebase"}</p>
           </div>
         </div>
 
