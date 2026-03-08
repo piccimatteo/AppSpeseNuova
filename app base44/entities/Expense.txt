@@ -1,0 +1,57 @@
+{
+  "name": "Expense",
+  "type": "object",
+  "properties": {
+    "description": {
+      "type": "string",
+      "description": "Descrizione della spesa"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Importo della spesa"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "conto_risparmio",
+        "tantum",
+        "rata",
+        "spesa_ricorrente",
+        "spesa_condivisa",
+        "bolletta",
+        "abbonamento",
+        "altro"
+      ],
+      "description": "Categoria della spesa"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data della spesa"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Note aggiuntive"
+    },
+    "is_recurring": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se la spesa \u00e8 ricorrente"
+    },
+    "is_paid": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se la spesa \u00e8 stata pagata"
+    },
+    "shared_with": {
+      "type": "string",
+      "description": "Con chi \u00e8 condivisa la spesa"
+    }
+  },
+  "required": [
+    "description",
+    "amount",
+    "category",
+    "date"
+  ]
+}
