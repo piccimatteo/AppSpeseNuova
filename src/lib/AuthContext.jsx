@@ -1,5 +1,13 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from 'firebase/auth';
+import { auth } from '@/api/firebase';
 
 const AuthContext = createContext();
 
@@ -11,18 +19,38 @@ export const AuthProvider = ({ children }) => {
   const [authError] = useState(null);
 
   useEffect(() => {
-    // Auto-login: if no session exists, create a default local session
-    if (!base44.auth.isLoggedIn()) {
-      base44.auth.login("utente");
-    }
-    const currentUser = base44.auth.getUser();
-    setUser(currentUser);
-    setIsAuthenticated(true);
-    setIsLoadingAuth(false);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser({
+          id: firebaseUser.uid,
+          email: firebaseUser.email,
+          name: firebaseUser.displayName || firebaseUser.email,
+        });
+        setIsAuthenticated(true);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+      setIsLoadingAuth(false);
+    });
+    return unsubscribe;
   }, []);
 
-  const logout = () => {
-    base44.auth.logout();
+  const login = async (email, password) => {
+    await signInWithEmailAndPassword(auth, email, password);
+  };
+
+  const register = async (email, password) => {
+    await createUserWithEmailAndPassword(auth, email, password);
+  };
+
+  const loginWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+  };
+
+  const logout = async () => {
+    await signOut(auth);
   };
 
   return (
@@ -32,6 +60,10 @@ export const AuthProvider = ({ children }) => {
       isLoadingAuth,
       isLoadingPublicSettings,
       authError,
+      login,
+      register,
+      loginWithGoogle,
+      logout,
       navigateToLogin: logout,
     }}>
       {children}

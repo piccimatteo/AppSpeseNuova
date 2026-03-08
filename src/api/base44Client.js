@@ -1,39 +1,71 @@
-import { localExpenses, localGoals, clearAllData } from './localData.js';
+import { auth } from './firebase.js';
+import { signOut } from 'firebase/auth';
+import { firestoreExpenses, firestoreGoals } from './firebaseData.js';
 
-// Local auth helpers
-const SESSION_KEY = "appspese_session";
+// Helper to get current user ID
+function getCurrentUserId() {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Not authenticated");
+  return user.uid;
+}
+
+// Wrap a Firestore entity so callers don't need to pass userId explicitly
+function wrapEntity(entity) {
+  return {
+    list(sortField) {
+      const uid = getCurrentUserId();
+      return entity.list(sortField, uid);
+    },
+    create(data) {
+      const uid = getCurrentUserId();
+      return entity.create(data, uid);
+    },
+    bulkCreate(dataArray) {
+      const uid = getCurrentUserId();
+      return entity.bulkCreate(dataArray, uid);
+    },
+    update(id, data) {
+      const uid = getCurrentUserId();
+      return entity.update(id, data, uid);
+    },
+    delete(id) {
+      const uid = getCurrentUserId();
+      return entity.delete(id, uid);
+    },
+    deleteAll() {
+      const uid = getCurrentUserId();
+      return entity.deleteAll(uid);
+    },
+  };
+}
 
 export const base44 = {
   entities: {
-    Expense: localExpenses,
-    Goal: localGoals,
+    Expense: wrapEntity(firestoreExpenses),
+    Goal: wrapEntity(firestoreGoals),
   },
   auth: {
-    logout() {
-      localStorage.removeItem(SESSION_KEY);
-      window.location.reload();
+    async logout() {
+      await signOut(auth);
     },
     async deleteAccount() {
-      clearAllData();
-      localStorage.removeItem(SESSION_KEY);
-      window.location.reload();
+      const uid = getCurrentUserId();
+      await firestoreExpenses.deleteAll(uid);
+      await firestoreGoals.deleteAll(uid);
+      await signOut(auth);
     },
     async me() {
-      const raw = localStorage.getItem(SESSION_KEY);
-      if (!raw) throw new Error("Not authenticated");
-      return JSON.parse(raw);
-    },
-    login(username) {
-      const user = { id: "local-user", username, name: username };
-      localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-      return user;
+      const user = auth.currentUser;
+      if (!user) throw new Error("Not authenticated");
+      return { id: user.uid, email: user.email, name: user.displayName || user.email };
     },
     isLoggedIn() {
-      return !!localStorage.getItem(SESSION_KEY);
+      return !!auth.currentUser;
     },
     getUser() {
-      const raw = localStorage.getItem(SESSION_KEY);
-      return raw ? JSON.parse(raw) : null;
+      const user = auth.currentUser;
+      if (!user) return null;
+      return { id: user.uid, email: user.email, name: user.displayName || user.email };
     },
   },
 };
